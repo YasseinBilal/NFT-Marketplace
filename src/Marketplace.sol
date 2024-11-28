@@ -43,7 +43,7 @@ contract Marketplace is Initializable {
         address nftContract,
         uint256 tokenId,
         uint256 price
-    ) external {
+    ) public {
         if (price == 0) {
             revert PriceMustBeGreaterThanZero();
         }
@@ -79,7 +79,7 @@ contract Marketplace is Initializable {
         delete listings[listingId];
     }
 
-    function cancelListing(uint256 listingId) external {
+    function cancelListing(uint256 listingId) public {
         Listing storage listing = listings[listingId];
         if (listing.seller != msg.sender) {
             revert NotTheSeller();
@@ -102,29 +102,12 @@ contract Marketplace is Initializable {
     ) external {
         Listing storage listing = listings[listingId];
 
-        if (price < 0) {
-            revert PriceMustBeGreaterThanZero();
-        }
-
         if (listing.seller != msg.sender) {
             revert NotTheSeller();
         }
 
-        if (nftContract == address(0)) {
-            revert InvalidAddress();
-        }
-
-        listing.nftContract = nftContract;
-        listing.tokenId = tokenId;
-        listing.price = price;
-
-        emit NFTListUpdated(
-            nextListingId,
-            msg.sender,
-            nftContract,
-            tokenId,
-            price
-        );
+        cancelListing(listingId);
+        listNFT(nftContract, tokenId, price);
     }
 
     function initialize() external initializer {}
