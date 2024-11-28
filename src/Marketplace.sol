@@ -23,11 +23,21 @@ contract Marketplace is Initializable {
         uint256 tokenId,
         uint256 price
     );
+
+    event NFTListUpdated(
+        uint256 listingId,
+        address indexed seller,
+        address nftContract,
+        uint256 tokenId,
+        uint256 price
+    );
     event NFTPurchased(uint256 listingId, address indexed buyer);
 
     error PriceMustBeGreaterThanZero();
     error IncorrectPrice();
     error NotTheSeller();
+
+    error InvalidAddress();
 
     function listNFT(
         address nftContract,
@@ -82,6 +92,39 @@ contract Marketplace is Initializable {
         );
 
         delete listings[listingId];
+    }
+
+    function updateListing(
+        uint256 listingId,
+        address nftContract,
+        uint256 tokenId,
+        uint256 price
+    ) external {
+        Listing storage listing = listings[listingId];
+
+        if (price < 0) {
+            revert PriceMustBeGreaterThanZero();
+        }
+
+        if (listing.seller != msg.sender) {
+            revert NotTheSeller();
+        }
+
+        if (nftContract == address(0)) {
+            revert InvalidAddress();
+        }
+
+        listing.nftContract = nftContract;
+        listing.tokenId = tokenId;
+        listing.price = price;
+
+        emit NFTListUpdated(
+            nextListingId,
+            msg.sender,
+            nftContract,
+            tokenId,
+            price
+        );
     }
 
     function initialize() external initializer {}
